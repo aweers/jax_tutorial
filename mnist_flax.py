@@ -91,7 +91,6 @@ def train_epoch(state, train_ds, batch_size, epoch, rng):
         for k in batch_metrics_np[0]
     }
 
-    print(f"Train epoch: {epoch}: loss: {epoch_metrics_np['loss']:.4f}, accuracy: {epoch_metrics_np['accuracy']*100:.2f}")
     return state
 
 def eval_model(params, test_ds):
@@ -107,20 +106,25 @@ train_ds['image'] = train_ds['image'][:train_set_size]
 train_ds['label'] = train_ds['label'][:train_set_size]
 test_ds['image'] = test_ds['image'][:test_set_size]
 test_ds['label'] = test_ds['label'][:test_set_size]
-rng = jax.random.PRNGKey(0)
-rng, init_rng = jax.random.split(rng)
 
-learning_rate = 0.1
-momentum = 0.9
 
-state = create_train_state(init_rng, learning_rate, momentum)
-del init_rng
+def train_and_eval(config):
+    rng = jax.random.PRNGKey(config['seed'])
+    rng, init_rng = jax.random.split(rng)
 
-num_epochs = 10
-batch_size = 32
 
-for epoch in range(1, num_epochs+1):
-    rng, input_rng = jax.random.split(rng)
-    state = train_epoch(state, train_ds, batch_size, epoch, input_rng)
+    state = create_train_state(init_rng, config['lr'], config['momentum'])
+
+    for epoch in range(1, config['num_epochs']+1):
+        rng, input_rng = jax.random.split(rng)
+        state = train_epoch(state, train_ds, config['batch_size'], epoch, input_rng)
     test_loss, test_accuracy = eval_model(state.params, test_ds)
-    print(f"Test epoch: {epoch}: loss: {test_loss:.4f}, accuracy: {test_accuracy*100:.2f}")
+    return test_loss, test_accuracy
+
+print(train_and_eval({
+    'num_epochs': 10,
+    'batch_size': 32,
+    'seed': 0,
+    'lr': 0.1,
+    'momentum': 0.9,
+}))
