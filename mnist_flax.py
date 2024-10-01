@@ -102,6 +102,11 @@ def eval_model(params, test_ds):
 
 
 train_ds, test_ds = get_datasets()
+train_set_size, test_set_size = 5000, 5000
+train_ds['image'] = train_ds['image'][:train_set_size]
+train_ds['label'] = train_ds['label'][:train_set_size]
+test_ds['image'] = test_ds['image'][:test_set_size]
+test_ds['label'] = test_ds['label'][:test_set_size]
 rng = jax.random.PRNGKey(0)
 rng, init_rng = jax.random.split(rng)
 
