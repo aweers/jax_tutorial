@@ -121,10 +121,44 @@ def train_and_eval(config):
     test_loss, test_accuracy = eval_model(state.params, test_ds)
     return test_loss, test_accuracy
 
-print(train_and_eval({
+configs = [
+    ("lr1", {
+    'num_epochs': 10,
+    'batch_size': 32,
+    'seed': 0,
+    'lr': 1,
+    'momentum': 0.9,
+    }),
+    ("lr0.1", {
     'num_epochs': 10,
     'batch_size': 32,
     'seed': 0,
     'lr': 0.1,
     'momentum': 0.9,
-}))
+    }),
+    ("lr0.01", {
+    'num_epochs': 10,
+    'batch_size': 32,
+    'seed': 0,
+    'lr': 0.01,
+    'momentum': 0.9,
+    }),
+    ("lr0.1_b64", {
+    'num_epochs': 10,
+    'batch_size': 64,
+    'seed': 0,
+    'lr': 0.1,
+    'momentum': 0.9,
+    }),
+    ("lr0.1_b16", {
+    'num_epochs': 10,
+    'batch_size': 16,
+    'seed': 0,
+    'lr': 0.1,
+    'momentum': 0.9,
+    }),
+]
+
+for name, config in configs:
+    loss, acc = train_and_eval(config)
+    print(f"{name}: loss: {loss:.4f}, acc: {acc*100:.2f}%")
