@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import numpy as np
 import jax
+import time
 
 def init_mlp_params(layer_widths):
     params = []
@@ -22,8 +23,6 @@ def loss_fn(params, x, y):
     soft = jax.nn.log_softmax(forward(params, x))
     return -jnp.mean((y * soft[:, 1]) + (1-y) * soft[:, 0])
 
-LR = 0.001
-
 @jax.jit
 def update(params, x, y):
     grads = jax.grad(loss_fn)(params, x, y)
@@ -32,15 +31,23 @@ def update(params, x, y):
         lambda p, g: p - LR * g, params, grads
     )
 
-toy_x = np.concatenate([np.random.normal([1, 1], [2, 2], size=(500, 2)), np.random.normal([0, 0], [3, 2], size=(1000, 2))])
+def accuracy(params, x, y):
+    return jnp.mean(jnp.argmax(forward(params, x), axis=-1) == y)
+
+toy_x = np.concatenate([np.random.normal([1, 1], [2, 2], size=(500, 2)), np.random.normal([0, 0], [1, 1], size=(1000, 2))])
 toy_y = np.concatenate([np.ones(500), np.zeros(1000)])
 
 params = init_mlp_params([2, 8, 16, 2])
 
-EPOCHS = 100
-print(f"Initial loss: {loss_fn(params, toy_x, toy_y)}")
+LR = 0.01
+EPOCHS = 1000
+print(f"Initial loss: {loss_fn(params, toy_x, toy_y):.3f}\tAccuracy: {accuracy(params, toy_x, toy_y) * 100:.2f}%")
+start_time = time.time()
 for i in range(EPOCHS):
     params = update(params, toy_x, toy_y)
 
-    if (i+1) % 10 == 0:
-        print(f"{i} epoch loss: {loss_fn(params, toy_x, toy_y)}")
+    if (i+1) % (EPOCHS//10) == 0:
+        print(f"{i} epoch loss: {loss_fn(params, toy_x, toy_y):.3f}\tAccuracy: {accuracy(params, toy_x, toy_y) * 100:.2f}%")
+end_time = time.time()
+
+print(f"Time: {(end_time - start_time)*1000:.4f}ms")
