@@ -3,11 +3,12 @@ import numpy as np
 import jax
 import time
 
-def init_mlp_params(layer_widths):
+def init_mlp_params(layer_widths, rng):
     params = []
-    for n_in, n_out in zip(layer_widths[:-1], layer_widths[1:]):
+    rngs = jax.random.split(rng, len(layer_widths)-1)
+    for rng_w, n_in, n_out in zip(rngs, layer_widths[:-1], layer_widths[1:]):
         params.append(
-            dict(weights=np.random.normal(size=(n_in, n_out)) * np.sqrt(2/n_in),
+            dict(weights=jax.random.normal(rng_w, shape=(n_in, n_out)) * np.sqrt(2/n_in),
             biases = np.ones(shape=(n_out,)))
         )
     return params
@@ -37,7 +38,9 @@ def accuracy(params, x, y):
 toy_x = np.concatenate([np.random.normal([1, 1], [2, 2], size=(500, 2)), np.random.normal([0, 0], [1, 1], size=(1000, 2))])
 toy_y = np.concatenate([np.ones(500), np.zeros(1000)])
 
-params = init_mlp_params([2, 8, 16, 2])
+rng = jax.random.key(0)
+
+params = init_mlp_params([2, 8, 16, 2], rng)
 
 LR = 0.01
 EPOCHS = 1000
